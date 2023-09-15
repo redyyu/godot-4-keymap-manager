@@ -1,0 +1,14 @@
+[gd_resource type="Theme" load_steps=3 format=3 uid="uid://c7no37vw4cfr0"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ias0h"]
+content_margin_left = 12.0
+bg_color = Color(0.960784, 0.286275, 0.729412, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cgid3"]
+content_margin_left = 24.0
+bg_color = Color(0.964706, 0.333333, 0.588235, 1)
+
+[resource]
+Tree/constants/item_margin = 16
+Tree/styles/selected = SubResource("StyleBoxFlat_ias0h")
+Tree/styles/selected_focus = SubResource("StyleBoxFlat_cgid3")

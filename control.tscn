@@ -1,0 +1,27 @@
+[gd_scene load_steps=3 format=3 uid="uid://dkip11pkcxeif"]
+
+[ext_resource type="Script" path="res://control.gd" id="1_6y8ev"]
+[ext_resource type="Theme" uid="uid://c7no37vw4cfr0" path="res://theme.tres" id="1_ggvf5"]
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_ggvf5")
+script = ExtResource("1_6y8ev")
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 500.0
+offset_top = 100.0
+offset_right = 1100.0
+offset_bottom = 500.0
+
+[node name="overlayer" type="ColorRect" parent="."]
+visible = false
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
