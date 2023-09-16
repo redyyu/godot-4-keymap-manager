@@ -42,20 +42,18 @@ var keymap = [
 ]
 
 var keyChain = KeyChain.new()
-var keymapTree = KeymapTree.new()
+
 
 @onready var panel :PanelContainer = $PanelContainer
+@onready var keymapManager :PanelContainer = $KeymapManager
 
 
 func _ready():
 	load_default_keymap()
-	keymapTree.load_tree(keyChain)
-	keymapTree.set_anchors_preset(Control.PRESET_FULL_RECT)
-	keymapTree.custom_minimum_size = Vector2(100, 100)
-	panel.add_child(keymapTree)
+	keymapManager.load_keychain(keyChain)
 
 
-func load_default_keymap():	
+func load_default_keymap():
 	for group in keymap:
 		for act in group['actions']:
 			var key_action = keyChain.add_action(act['key'], act['name'], group['tag'])

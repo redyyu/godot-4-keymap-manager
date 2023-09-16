@@ -6,10 +6,10 @@ signal keymap_event_bounded(group, event)
 
 const ERR_ACTION_NOT_EXIST = 'Keymap action dose not exist.'
 
-@export var key :StringName = '-'
-@export var name :StringName = '-'
+@export var key :StringName = ''
+@export var name :String = ''
 @export var deadzone :float = 0.5
-@export var tags :Array[StringName] = []
+@export var tags :Array = []
 @export var events :Array[InputEvent] = []
 
 @export var single_event_mode :bool = false :
@@ -32,7 +32,8 @@ func sync():
 		InputMap.add_action(key)
 	
 	InputMap.action_set_deadzone(key, deadzone)
-	InputMap.action_erase_events(key)
+	if InputMap.action_get_events(key).size() > 0:
+		InputMap.action_erase_events(key)
 	for evt in events:
 		InputMap.action_add_event(key, evt)
 
@@ -48,7 +49,11 @@ func clear_events():
 	events.clear()
 	if InputMap.has_action(key):
 		InputMap.action_erase_events(key)
-	
+
+
+func count_events():
+	return events.size()
+
 
 func has_event(event:InputEventWithModifiers):
 	for evt in events:
@@ -64,10 +69,26 @@ func bind_event(event:InputEventWithModifiers):
 			unbind_event(evt)
 		# NO NEED events.clear(), already removed all in unbind_event().
 	else:
+		# make sure event not duplicated.
 		unbind_event(event)
 	# append new event to action events.
 	if not events.has(event):
 		events.append(event)
+		keymap_event_bounded.emit(key, event, tags)
+		if InputMap.has_action(key):
+			InputMap.action_add_event(key, event)
+
+
+func update_event(old_event:InputEventWithModifiers, event:InputEventWithModifiers):
+	var insert_index = 0
+	for i in events.size():
+		if old_event == events[i]:
+			unbind_event(old_event)
+			insert_index = i
+			break
+	# append new event to action events.
+	if not events.has(event):
+		events.insert(insert_index, event)
 		keymap_event_bounded.emit(key, event, tags)
 		if InputMap.has_action(key):
 			InputMap.action_add_event(key, event)

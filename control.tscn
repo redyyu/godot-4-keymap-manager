@@ -1,7 +1,9 @@
-[gd_scene load_steps=5 format=3 uid="uid://dkip11pkcxeif"]
+[gd_scene load_steps=7 format=3 uid="uid://dkip11pkcxeif"]
 
 [ext_resource type="Script" path="res://control.gd" id="1_6y8ev"]
 [ext_resource type="Theme" uid="uid://c7no37vw4cfr0" path="res://theme.tres" id="1_ggvf5"]
+[ext_resource type="Script" path="res://KeymapInfo.gd" id="3_d4286"]
+[ext_resource type="Script" path="res://KeymapManager.gd" id="3_m13ti"]
 
 [sub_resource type="InputEventAction" id="InputEventAction_6gwca"]
 action = &"test-1"
@@ -19,12 +21,22 @@ grow_vertical = 2
 theme = ExtResource("1_ggvf5")
 script = ExtResource("1_6y8ev")
 
-[node name="PanelContainer" type="PanelContainer" parent="."]
+[node name="KeymapManager" type="PanelContainer" parent="."]
 layout_mode = 0
 offset_left = 500.0
 offset_top = 100.0
 offset_right = 1100.0
 offset_bottom = 500.0
+script = ExtResource("3_m13ti")
+
+[node name="Tree" type="Tree" parent="KeymapManager"]
+layout_mode = 2
+hide_root = true
+
+[node name="Info" type="PanelContainer" parent="KeymapManager"]
+visible = false
+layout_mode = 2
+script = ExtResource("3_d4286")
 
 [node name="Button" type="Button" parent="."]
 layout_mode = 0

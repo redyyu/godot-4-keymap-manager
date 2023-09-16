@@ -10,8 +10,8 @@ enum UniqueEventMode {
 
 signal keymap_bounded(group_key, event)
 
-@export var actions :Array = []
-@export var tags :Array[StringName] = []
+@export var actions :Array[KeyChainAction] = []
+@export var tags :Array = []
 
 # same event only exist in one action.
 @export var unique_event_mode = UniqueEventMode.ALL
@@ -50,29 +50,32 @@ func remove_event(event):
 		action.remove_event(event)
 
 
-func pack_actions_tree():
-	var output :Array[Dictionary] = []
+func pack_actions_tree(as_list :bool = true):
+	var output :Dictionary = {'': []}
+	var output_list :Array = []
 	for tag in tags:
-		var output_tag = {
-			'tag': tag,
-			'actions': []
-		}
-		for action in actions:
-			if action.tags.has(tag):
-				output_tag['actions'].append(action)
-		output.append(output_tag)
+		output[tag] = []
 		
-	# find all actions without any tags.
-	var others = {
-		'tag': '',
-		'actions': []
-	}
 	for action in actions:
 		if action.tags.is_empty():
-			others['actions'].append(action)
-	output.append(others)
-	
-	return output
+			output[''].append(action)
+		else:
+			for t in action.tags:
+				if output.has(t):
+					output[t].append(action)
+	if as_list:
+		for tag in tags:
+			output_list.append({
+				'tag': tag,
+				'actions': output[tag]
+			})
+		output_list.append({
+			'tag': '',
+			'actions': output['']
+		})
+		return output_list
+	else:
+		return output
 
 
 func search_actions_by_tag(by_tag :StringName = ''):
@@ -97,16 +100,14 @@ func add_action(action_key :StringName, action_name :String = '' , tag :StringNa
 	action = get_action(action_key)
 	assert(action == null, 'Action key must bee not duplicated.')
 	
-	if tag and not tags.has(tag):
-		tags.append(tag)
+	add_tag(tag)
 	
 	action = KeyChainAction.new()
 	action.key = action_key
 	action.name = action_name
 	action.deadzone = deadzone
 	action.single_event_mode = single_event_mode
-	if tag:
-		action.tags = [tag]
+	action.tags = [tag] if tag else []
 
 	actions.append(action)
 	action.keymap_event_bounded.connect(_on_keymap_event_bounded)
@@ -124,14 +125,12 @@ func update_action(action_key :StringName, action_name :String = '' , tag :Strin
 	var action = get_action(action_key)
 	assert(action != null, 'Action not found.')
 	
-	if tag and not tags.has(tag):
-		tags.append(tag)
-	
+	add_tag(tag)
+		
 	action.name = action_name
 	action.deadzone = deadzone
 	action.single_event_mode = single_event_mode
-	if tag:
-		action.tags = [tag]
+	action.tags = [tag] if tag else []
 		
 	return action
 
@@ -143,7 +142,7 @@ func get_action(action_key :StringName):
 	return null
 
 
-func del_action(action_key :StringName = ''):
+func del_action(action_key :StringName):
 	var action = get_action(action_key)
 	if action:
 		action.clear_events()
@@ -155,7 +154,7 @@ func del_action(action_key :StringName = ''):
 		
 
 func add_tag(tag :StringName):
-	if not tags.has(tag):
+	if tag and (not tags.has(tag)):
 		tags.append(tag)
 	return tags
 
@@ -163,6 +162,7 @@ func add_tag(tag :StringName):
 func remove_tag(tag :StringName):
 	if tags.has(tag):
 		tags.erase(tag)
+	# keep remove tag from action, even tag is not exists in `tags`.
 	for action in actions:
 		if action.tags.has(tag):
 			action.tags.erase(tag)
@@ -201,20 +201,49 @@ func reset_action_tags():
 			action.tags.erase(r)
 
 
-func _on_keymap_event_bounded(action_key, event, tag):
+func find_event_exists(event :InputEvent, by_tags :Variant = false):
+	var confilicts :Array = []
+	
+	if by_tags == false:
+		for act in actions:
+			if act.has_event(event):
+				confilicts.append(act)
+	else:
+		if by_tags is String or by_tags is StringName:
+			by_tags = [by_tags]
+		elif not by_tags is Array:
+			by_tags = []
+		
+		if by_tags.is_empty():
+			for act in actions:
+				if act.tags.is_empty() and act.has_event(event):
+					confilicts.append(act)
+		else:
+			for t in by_tags:
+				for act in actions:
+					if act.tags.has(t) and act.has_event(event):
+						confilicts.append(act)
+
+	return confilicts
+
+
+func _on_keymap_event_bounded(action_key, event, action_tags):
 	match unique_event_mode:
 		UniqueEventMode.ALL:
 			for action in actions:
-				if action.key == action_key:
-					continue
-				action.unbind_event(event)
-		UniqueEventMode.TAG:
-			for action in actions:
-				if action.tag == tag:
-					if action.key == action_key:
-						continue
+				if action.key != action_key:
 					action.unbind_event(event)
-	keymap_bounded.emit(action_key, event, tag)
+		UniqueEventMode.TAG:
+			if action_tags.is_empty():
+				for action in actions:
+					if action.key != action_key and action.tags.is_empty():
+						action.unbind_event(event)
+			else:
+				for tag in action_tags:
+					for action in actions:
+						if action.key != action_key and action.tags.has(tag):
+							action.unbind_event(event)
+	keymap_bounded.emit(action_key, event, action_tags)
 
 
 # static functions
