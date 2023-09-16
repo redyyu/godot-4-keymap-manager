@@ -62,30 +62,24 @@ func has_event(event:InputEventWithModifiers):
 	return false
 
 
-func bind_event(event:InputEventWithModifiers):
+func bind_event(event:InputEventWithModifiers, old_event:Variant = null):
+	var insert_index = 0
+	
 	if single_event_mode:
 		# clear up other events before append new one.
 		for evt in events:
 			unbind_event(evt)
 		# NO NEED events.clear(), already removed all in unbind_event().
 	else:
+		if old_event is InputEventWithModifiers:
+			# remove old event and take the place.
+			for i in events.size():
+				if old_event == events[i]:
+					unbind_event(old_event)
+					insert_index = i
+					break
 		# make sure event not duplicated.
 		unbind_event(event)
-	# append new event to action events.
-	if not events.has(event):
-		events.append(event)
-		keymap_event_bounded.emit(key, event, tags)
-		if InputMap.has_action(key):
-			InputMap.action_add_event(key, event)
-
-
-func update_event(old_event:InputEventWithModifiers, event:InputEventWithModifiers):
-	var insert_index = 0
-	for i in events.size():
-		if old_event == events[i]:
-			unbind_event(old_event)
-			insert_index = i
-			break
 	# append new event to action events.
 	if not events.has(event):
 		events.insert(insert_index, event)

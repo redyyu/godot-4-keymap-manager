@@ -43,8 +43,6 @@ var keymap = [
 
 var keyChain = KeyChain.new()
 
-
-@onready var panel :PanelContainer = $PanelContainer
 @onready var keymapManager :PanelContainer = $KeymapManager
 
 

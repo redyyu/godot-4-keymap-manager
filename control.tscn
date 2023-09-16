@@ -1,8 +1,7 @@
-[gd_scene load_steps=7 format=3 uid="uid://dkip11pkcxeif"]
+[gd_scene load_steps=6 format=3 uid="uid://dkip11pkcxeif"]
 
 [ext_resource type="Script" path="res://control.gd" id="1_6y8ev"]
 [ext_resource type="Theme" uid="uid://c7no37vw4cfr0" path="res://theme.tres" id="1_ggvf5"]
-[ext_resource type="Script" path="res://KeymapInfo.gd" id="3_d4286"]
 [ext_resource type="Script" path="res://KeymapManager.gd" id="3_m13ti"]
 
 [sub_resource type="InputEventAction" id="InputEventAction_6gwca"]
@@ -32,11 +31,45 @@ script = ExtResource("3_m13ti")
 [node name="Tree" type="Tree" parent="KeymapManager"]
 layout_mode = 2
 hide_root = true
+scroll_horizontal_enabled = false
 
-[node name="Info" type="PanelContainer" parent="KeymapManager"]
-visible = false
+[node name="ConflictsInfo" type="PanelContainer" parent="KeymapManager"]
 layout_mode = 2
-script = ExtResource("3_d4286")
+
+[node name="column" type="VBoxContainer" parent="KeymapManager/ConflictsInfo"]
+layout_mode = 2
+
+[node name="ConflictsText" type="Label" parent="KeymapManager/ConflictsInfo/column"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="bottom" type="HBoxContainer" parent="KeymapManager/ConflictsInfo/column"]
+layout_mode = 2
+alignment = 1
+
+[node name="margin-left" type="MarginContainer" parent="KeymapManager/ConflictsInfo/column/bottom"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="BtnCancel" type="Button" parent="KeymapManager/ConflictsInfo/column/bottom/margin-left"]
+layout_mode = 2
+text = "Canel"
+
+[node name="margin-right" type="MarginContainer" parent="KeymapManager/ConflictsInfo/column/bottom"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="BtnConfirm" type="Button" parent="KeymapManager/ConflictsInfo/column/bottom/margin-right"]
+layout_mode = 2
+text = "Confirm"
 
 [node name="Button" type="Button" parent="."]
 layout_mode = 0
@@ -54,4 +87,6 @@ offset_top = 114.0
 offset_right = 268.0
 offset_bottom = 137.0
 
+[connection signal="pressed" from="KeymapManager/ConflictsInfo/column/bottom/margin-left/BtnCancel" to="KeymapManager" method="_on_conflict_canceled"]
+[connection signal="pressed" from="KeymapManager/ConflictsInfo/column/bottom/margin-right/BtnConfirm" to="KeymapManager" method="_on_conflict_confirmed"]
 [connection signal="pressed" from="Button" to="." method="_on_button_pressed"]

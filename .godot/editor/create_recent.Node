@@ -1,4 +1,8 @@
+VBoxContainer
 PanelContainer
-Tree
+MarginContainer
 Label
 Button
+HBoxContainer
+Panel
+Tree
