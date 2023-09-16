@@ -12,6 +12,7 @@ var ico_delete: Texture2D = preload("assets/remove.svg")
 var ico_key: Texture2D = preload("assets/keyboard.svg")
 var ico_mouse: Texture2D = preload("assets/mouse.svg")
 var ico_shortcut: Texture2D = preload("assets/shortcut.svg")
+var ico_question: Texture2D = preload("assets/question.svg")
 var ico_empty: Texture2D = preload("assets/trans.png")
 
 var keyChain :KeyChain
@@ -83,7 +84,7 @@ func reset_keymap_item(item):
 		item.add_button(0, ico_edit, 1, false, 'Edit')
 	else:
 		item.set_text(0, 'Unset')
-		item.set_icon(0, ico_empty)
+		item.set_icon(0, ico_question)
 		clear_item_buttons(item)
 		item.add_button(0, ico_add, 0, false, 'Add')
 		
@@ -136,7 +137,7 @@ func load_tree(key_chain :KeyChain):
 			if action['events'].is_empty():
 				var new_evt_tree = action_tree.create_child()
 				new_evt_tree.set_text(0, 'Unset')
-				new_evt_tree.set_icon(0, ico_empty)
+				new_evt_tree.set_icon(0, ico_question)
 				new_evt_tree.add_button(0, ico_add, 0, false, 'Add')
 				new_evt_tree.set_metadata(0, {
 					'action': action,
