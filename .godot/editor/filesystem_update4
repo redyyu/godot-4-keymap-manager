@@ -3,3 +3,4 @@ res://theme.tres
 res://KeyMapTree.gd
 res://KeyChain/KeyChainGroup.gd
 res://KeyChain/KeyChain.gd
+res://KeyChain/KeyChainAction.gd

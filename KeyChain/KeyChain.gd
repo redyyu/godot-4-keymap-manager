@@ -2,17 +2,223 @@ extends Resource
 
 class_name KeyChain
 
-const DEFAULT_GROUP_KEY = 'default'
+enum UniqueEventMode {
+	NONE,
+	ALL,
+	TAG,
+}
 
 signal keymap_bounded(group_key, event)
 
-@export var ordered_groups:Array = []
-@export var groups_dict:Dictionary = {}
+@export var actions :Array = []
+@export var tags :Array[StringName] = []
 
-# same event only exist in one group.
-@export var unique_event_cross_groups = true  
+# same event only exist in one action.
+@export var unique_event_mode = UniqueEventMode.ALL
 # BTW, event always be unique in group.
 
+
+func _ready():
+	for action in actions:
+		action.keymap_event_bounded.connect(_on_keymap_event_bounded)
+	
+
+func synchronize(empty_exists :bool = false):
+	if empty_exists:
+		for act in InputMap.get_actions():
+			InputMap.erase_action(act)
+	
+	for action in actions:
+		action.sync()
+
+
+func clear():
+	for action in actions:
+		action.clear_events()
+	actions.clear()
+
+
+func clear_events():
+	for action in actions:
+		action.clear_events()
+
+
+func remove_event(event):
+	for action in actions:
+		action.remove_event(event)
+
+
+
+func get_actions_tree():
+	var output :Array[Dictionary] = []
+	for tag in tags:
+		var output_tag = {
+			'tag': tag,
+			'actions': []
+		}
+		for action in actions:
+			if action.tags.has(tag):
+				output_tag['actions'].append(action)
+		output.append(output_tag)
+		
+	# find all actions without any tags.
+	var others = {
+		'tag': '',
+		'actions': []
+	}
+	for action in actions:
+		if action.tags.is_empty():
+			others['actions'].append(action)
+	output.append(others)
+	
+	return output
+
+
+func search_actions_by_tag(by_tag :StringName = ''):
+	var output :Array = []
+	for action in actions:
+		if by_tag:
+			if action.tags.has(by_tag):
+				output.append(action)
+		else:
+			if action.tags.is_empty():
+				output.append(action)
+	return output
+
+
+func add_action(action_key :StringName, action_name :String = '' , tag :StringName = '',
+				deadzone: float = 0.5, single_event: bool = false):
+	if not action_name:
+		action_name = action_key.capitalize()
+	
+	var action :KeyChainAction
+	
+	action = get_action(action_key)
+	assert(action == null, 'Action key must bee not duplicated.')
+	
+	if tag and not tags.has(tag):
+		tags.append(tag)
+		
+	print('assert')
+	
+	action = KeyChainAction.new()
+	action.key = action_key
+	action.name = action_name
+	action.deadzone = deadzone
+	action.single_event_mode = single_event
+	if tag:
+		action.tags = [tag]
+
+	actions.append(action)
+	action.keymap_event_bounded.connect(_on_keymap_event_bounded)
+	if not InputMap.has_action(action_key): 
+		InputMap.add_action(action_key)
+		
+	return action
+
+
+func update_action(action_key :StringName, action_name :String = '' , tag :StringName = '',
+				deadzone: float = 0.5, single_event: bool = false):
+	if not action_name:
+		action_name = action_key.capitalize()
+	
+	var action = get_action(action_key)
+	assert(action != null, 'Action not found.')
+	
+	if tag and not tags.has(tag):
+		tags.append(tag)
+	
+	action.name = action_name
+	action.deadzone = deadzone
+	action.single_event_mode = single_event
+	if tag:
+		action.tags = [tag]
+		
+	return action
+
+
+func get_action(action_key :StringName):
+	for action in actions:
+		if action.key == action_key:
+			return action
+	return null
+
+
+func del_action(action_key :StringName = ''):
+	var action = get_action(action_key)
+	if action:
+		action.clear_events()
+		actions.erase(action)
+		if action.keymap_event_bounded.is_connected(_on_keymap_event_bounded):
+			action.keymap_event_bounded.diconnect()
+		if InputMap.has_action(action.key):
+			InputMap.erase_action(action.key)
+		
+
+func add_tag(tag :StringName):
+	if not tags.has(tag):
+		tags.append(tag)
+	return tags
+
+
+func remove_tag(tag :StringName):
+	if tags.has(tag):
+		tags.erase(tag)
+	for action in actions:
+		if action.tags.has(tag):
+			action.tags.erase(tag)
+
+
+func clear_tags():
+	tags.clear()		
+	for action in actions:
+		action.tags.clear()
+
+
+func add_tag_to_action(tag:StringName, action:KeyChainAction):
+	add_tag(tag)
+	if not action.tags.has(tag):
+		action.tags.append(tag)
+
+
+func remove_tag_from_action(tag:StringName, action:KeyChainAction):
+	action.tags.erase(tag)
+	
+
+func reset_action_tags():
+	var removes :Array = []
+	for tag in tags:
+		if not tag:
+			removes.append(tag)
+	for r in removes:
+		tags.erase(r)
+			
+	for action in actions:
+		removes = []
+		for atag in action.tags:
+			if not tags.has(atag):
+				removes.append(atag)
+		for r in removes:
+			action.tags.erase(r)
+
+
+func _on_keymap_event_bounded(action_key, event, tag):
+	match unique_event_mode:
+		UniqueEventMode.ALL:
+			for action in actions:
+				if action.key == action_key:
+					continue
+				action.remove_event_from_actions(event)
+		UniqueEventMode.TAG:
+			for action in actions:
+				if action.tag == tag:
+					if action.key == action_key:
+						continue
+					action.remove_event_from_actions(event)
+	keymap_bounded.emit(action_key, event, tag)
+
+
+# static functions
 
 static func makeEventMouseButton(event_key, cmd=false, shift=false, alt=false):
 	var event: InputEventMouseButton = InputEventMouseButton.new()
@@ -62,86 +268,3 @@ static func is_equal_input(evt_1 :Variant, evt_2 :Variant, not_strict :bool = tr
 			].all(func(val): return val == true)
 	else:
 		return false
-
-
-func _ready():
-	if groups_dict.is_empty():
-		add_group(DEFAULT_GROUP_KEY, DEFAULT_GROUP_KEY.capitalize())
-	
-	for group in ordered_groups:
-		group.keymap_event_bounded.connect(_on_keymap_event_bounded)
-	
-
-func synchronize(empty_exists :bool = false):
-	if empty_exists:
-		for act in InputMap.get_actions():
-			InputMap.erase_action(act)
-	
-	for k in groups_dict:
-		groups_dict[k].sync()
-
-
-func clear():
-	for k in groups_dict:
-		groups_dict[k].clear()
-	ordered_groups.clear()
-	groups_dict.clear()
-
-
-func clear_events():
-	for k in groups_dict:
-		groups_dict[k].clear_events()
-
-
-func remove_event(event):
-	for k in groups_dict:
-		groups_dict[k].remove_event(event)
-
-
-func add_group(group_key :StringName, group_name :String = ''):
-	if not group_name:
-		group_name = group_key.capitalize()
-	
-	var group
-	
-	if groups_dict.has(group_key):
-		group = groups_dict[group_key]
-		group.name = group_name
-	else:
-		group = KeyChainGroup.new()
-		group.name = group_name
-		group.key = group_key
-	
-		groups_dict[group_key] = group
-		ordered_groups.append(group)
-		group.keymap_event_bounded.connect(_on_keymap_event_bounded)
-	return group
-
-
-func list_groups():
-	return ordered_groups
-
-
-func get_group(group_key :StringName = ''):
-	if not group_key:
-		group_key = DEFAULT_GROUP_KEY
-	return groups_dict.get(group_key)
-
-
-func del_group(group_key :StringName = ''):
-	var group = get_group(group_key)
-	if group:
-		group.clear()
-		ordered_groups.erase(group)
-		groups_dict.erase(group_key)
-		if group.keymap_event_bounded.is_connected(_on_keymap_event_bounded):
-			group.keymap_event_bounded.diconnect()
-		
-
-func _on_keymap_event_bounded(group_key, event):
-	if unique_event_cross_groups:
-		for _group in ordered_groups:
-			if _group.key == group_key:
-				continue
-			_group.remove_event_from_actions(event)
-	keymap_bounded.emit(group_key, event)
