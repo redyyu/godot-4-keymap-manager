@@ -17,6 +17,8 @@ signal keymap_bounded(group_key, event)
 @export var unique_event_mode = UniqueEventMode.ALL
 # BTW, event always be unique in group.
 
+@export var single_event_mode = false
+
 
 func _ready():
 	for action in actions:
@@ -48,8 +50,7 @@ func remove_event(event):
 		action.remove_event(event)
 
 
-
-func get_actions_tree():
+func pack_actions_tree():
 	var output :Array[Dictionary] = []
 	for tag in tags:
 		var output_tag = {
@@ -87,7 +88,7 @@ func search_actions_by_tag(by_tag :StringName = ''):
 
 
 func add_action(action_key :StringName, action_name :String = '' , tag :StringName = '',
-				deadzone: float = 0.5, single_event: bool = false):
+				deadzone: float = 0.5):
 	if not action_name:
 		action_name = action_key.capitalize()
 	
@@ -98,14 +99,12 @@ func add_action(action_key :StringName, action_name :String = '' , tag :StringNa
 	
 	if tag and not tags.has(tag):
 		tags.append(tag)
-		
-	print('assert')
 	
 	action = KeyChainAction.new()
 	action.key = action_key
 	action.name = action_name
 	action.deadzone = deadzone
-	action.single_event_mode = single_event
+	action.single_event_mode = single_event_mode
 	if tag:
 		action.tags = [tag]
 
@@ -118,7 +117,7 @@ func add_action(action_key :StringName, action_name :String = '' , tag :StringNa
 
 
 func update_action(action_key :StringName, action_name :String = '' , tag :StringName = '',
-				deadzone: float = 0.5, single_event: bool = false):
+				   deadzone: float = 0.5):
 	if not action_name:
 		action_name = action_key.capitalize()
 	
@@ -130,7 +129,7 @@ func update_action(action_key :StringName, action_name :String = '' , tag :Strin
 	
 	action.name = action_name
 	action.deadzone = deadzone
-	action.single_event_mode = single_event
+	action.single_event_mode = single_event_mode
 	if tag:
 		action.tags = [tag]
 		
@@ -208,13 +207,13 @@ func _on_keymap_event_bounded(action_key, event, tag):
 			for action in actions:
 				if action.key == action_key:
 					continue
-				action.remove_event_from_actions(event)
+				action.unbind_event(event)
 		UniqueEventMode.TAG:
 			for action in actions:
 				if action.tag == tag:
 					if action.key == action_key:
 						continue
-					action.remove_event_from_actions(event)
+					action.unbind_event(event)
 	keymap_bounded.emit(action_key, event, tag)
 
 

@@ -52,10 +52,9 @@ func _input(event):
 			elif event.keycode < 200:
 				# prevent special keys pressed alone. 
 				# DO NOT support InputEventMouseButton, useless in this case.
-				meta['group'].bind_action_event(meta['action_key'],event)
+				meta['action'].bind_event(event)
 				edit_item.set_metadata(0, {
-					'group': meta['group'],
-					'action_key': meta['action_key'],
+					'action': meta['action'],
 					'event': event,
 				})
 				for _item in keymap_items:
@@ -63,8 +62,7 @@ func _input(event):
 						var _meta = _item.get_metadata(0)
 						if KeyChain.is_equal_input(event, _meta['event']):
 							_item.set_metadata(0, {
-								'group': _meta['group'],
-								'action_key': _meta['action_key'],
+								'action': _meta['action'],
 								'event': null,
 							})
 					reset_keymap_item(_item)
@@ -110,13 +108,13 @@ func load_tree(key_chain :KeyChain):
 	var root = create_item()
 	
 	hide_root = true
-	for group in keyChain.list_groups():
-		var group_tree = root.create_child()
-		group_tree.set_text(0, group.name)
-		group_tree.set_selectable(0, false)
-		group_tree.disable_folding = true
-		for action in group.list_actions():
-			var action_tree = group_tree.create_child()
+	for tag_group in keyChain.pack_actions_tree():
+		var tag_tree = root.create_child()
+		tag_tree.set_text(0, tag_group['tag'])
+		tag_tree.set_selectable(0, false)
+		tag_tree.disable_folding = true
+		for action in tag_group['actions']:
+			var action_tree = tag_tree.create_child()
 			action_tree.set_text(0, action['name'])
 			action_tree.collapsed = true
 			action_tree.set_selectable(0, false)
@@ -131,18 +129,17 @@ func load_tree(key_chain :KeyChain):
 				else:
 					evt_tree.set_icon(0, ico_key)
 				evt_tree.set_metadata(0, {
-					'group': group,
-					'action_key': action['key'],
+					'action': action,
 					'event': evt,
 				})
 				keymap_items.append(evt_tree)
 			if action['events'].is_empty():
 				var new_evt_tree = action_tree.create_child()
 				new_evt_tree.set_text(0, 'Unset')
+				new_evt_tree.set_icon(0, ico_empty)
 				new_evt_tree.add_button(0, ico_add, 0, false, 'Add')
 				new_evt_tree.set_metadata(0, {
-					'group': group,
-					'action_key': action['key'],
+					'action': action,
 					'event': null,
 				})
 				keymap_items.append(new_evt_tree)

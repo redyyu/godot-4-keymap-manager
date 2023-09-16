@@ -2,8 +2,7 @@ extends Control
 
 var keymap = [
 	{
-		'key': 'group-1',
-		'name': 'Group 1',
+		'tag': 'Group 1',
 		'actions': [
 			{
 				'key':'group-1-click-1', 'name': 'Test 1 Click 1',
@@ -20,8 +19,7 @@ var keymap = [
 		]
 	},
 	{
-		'key': 'group-2',
-		'name': 'Group 2',
+		'tag': 'Group 2',
 		'actions': [
 			{
 				'key':'group-2-click-1', 'name': 'Test 2 Click 1',
@@ -58,13 +56,12 @@ func _ready():
 
 
 func load_default_keymap():	
-	for item in keymap:
-		var key_group = keyChain.add_group(item['key'], item['name'])
-		for act in item['actions']:
-			key_group.add_action(act['key'], act['name'])
+	for group in keymap:
+		for act in group['actions']:
+			var key_action = keyChain.add_action(act['key'], act['name'], group['tag'])
 			for evt in act['events']:
-				key_group.bind_action_event(act['key'], evt)
-	keyChain.synchronize()
+				key_action.bind_event(evt)
+#	keyChain.synchronize()
 
 
 func _on_button_pressed():

@@ -58,15 +58,19 @@ func has_event(event:InputEventWithModifiers):
 
 
 func bind_event(event:InputEventWithModifiers):
-	unbind_event(event)
 	if single_event_mode:
 		# clear up other events before append new one.
 		for evt in events:
 			unbind_event(evt)
-		# append new event to action events.
+		# NO NEED events.clear(), already removed all in unbind_event().
+	else:
+		unbind_event(event)
+	# append new event to action events.
+	if not events.has(event):
 		events.append(event)
-		InputMap.action_add_event(key, event)
 		keymap_event_bounded.emit(key, event, tags)
+		if InputMap.has_action(key):
+			InputMap.action_add_event(key, event)
 
 
 func unbind_event(event:InputEventWithModifiers):
