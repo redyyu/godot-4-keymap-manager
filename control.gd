@@ -10,7 +10,7 @@ var keymap = [
 			 	'events': [KeyChain.makeEventKey(KEY_X)]
 			},
 			{
-				'key':'group-1-click-2', 'name': 'Test 1 Click 2',
+				'key':'test-1', 'name': 'Test 1 Click 2',
 			 	'events': [KeyChain.makeEventKey(KEY_C)]
 			},
 			{
@@ -65,3 +65,10 @@ func load_default_keymap():
 			for evt in act['events']:
 				key_group.bind_action_event(act['key'], evt)
 	keyChain.synchronize()
+
+
+func _on_button_pressed():
+	if not $Label.text:
+		$Label.text = 'Clicked'
+	else:
+		$Label.text = ''

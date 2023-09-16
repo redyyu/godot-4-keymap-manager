@@ -2,7 +2,7 @@ extends Resource
 
 class_name KeyChainGroup
 
-signal event_bounded(group, event)
+signal keymap_event_bounded(group, event)
 
 const ERR_ACTION_NOT_EXIST = 'Keymap action dose not exist.'
 
@@ -10,7 +10,19 @@ const ERR_ACTION_NOT_EXIST = 'Keymap action dose not exist.'
 @export var name:StringName = '-'
 @export var actions_dict:Dictionary = {}
 @export var ordered_actions:Array = []
-@export var deep_match_event :bool = false
+
+@export var single_event_mode :bool = false :
+	set(val):
+		if single_event_mode != val:
+			single_event_mode = val
+			if single_event_mode:
+				for action in ordered_actions:
+					var removes :Array = []
+					for i in action['events']:
+						if i > 0:
+							removes.append(action['events'][i])
+					for r in removes:
+						unbind_action_event(action['key'], r)
 
 
 func sync():
@@ -27,7 +39,6 @@ func sync():
 
 
 func clear():
-	# NO NEED sync.
 	for k in actions_dict:
 		if InputMap.has_action(k):
 			InputMap.erase_action(k)
@@ -36,29 +47,17 @@ func clear():
 
 
 func clear_events():
-	# NO NEED sync.
 	for k in actions_dict:
 		var exist_action = actions_dict[k]
 		exist_action['events'].clear()
-		InputMap.action_erase_events(k)
+		if InputMap.has_action(k):
+			InputMap.action_erase_events(k)
 
 
-func remove_event(event :InputEventWithModifiers):
-	# NO NEED sync.
+func remove_event_from_actions(event :InputEventWithModifiers):
+	# remove same event or equals event from all actions.
 	for k in actions_dict:
-		var exist_action = actions_dict[k]
-		if exist_action['events'].has(event):
-			exist_action['events'].erase(event)
-		else:
-			var removes :Array = [] 
-			for evt in exist_action['events']:
-				if KeyChain.is_equals_event(event, evt, deep_match_event):
-					removes.append(evt)
-			for r in removes:
-				exist_action['events'].erase(r)
-				
-		if InputMap.has_action(k) and InputMap.action_has_event(k, event):
-			InputMap.action_erase_event(k, event)
+		unbind_action_event(k, event)
 
 
 func add_action(action_key :StringName, action_name :String = '', deadzone: float = 0.5):
@@ -165,48 +164,34 @@ func bind_action_event(action_key :StringName, event:InputEventWithModifiers):
 	if target_action:
 		for k in actions_dict:
 			unbind_action_event(k, event)
+		if single_event_mode:
+			# clear up other events before append new one.
+			for evt in target_action['events']:
+				unbind_action_event(action_key, evt)
+		# append new event to action events.
 		target_action['events'].append(event)
 		InputMap.action_add_event(action_key, event)
-		event_bounded.emit(key, event)
+		keymap_event_bounded.emit(key, event)
 
 
 func unbind_action_event(action_key :StringName, event:InputEventWithModifiers):
+	var removes :Array = []
 	var target_action = get_action(action_key)
 	if target_action['events'].has(event):
-		target_action['events'].erase(event)
+		# event is the one in action.
+		removes.append(event)
 	else:
-		var removes :Array = []
+		# equals event in action.
 		for evt in target_action['events']:
-			if KeyChain.is_equals_event(event, evt, deep_match_event):
+			if KeyChain.is_equal_input(event, evt):
 				removes.append(evt)
-		for r in removes:
-			target_action['events'].erase(r)
 	
-	if InputMap.has_action(action_key) and InputMap.action_has_event(action_key, event):
-		InputMap.action_erase_event(action_key, event)
-
-
-func get_event_from_action(action_key_or_dict, event:InputEventWithModifiers):
-	var action = null
-	if action_key_or_dict is Dictionary:
-		action = action_key_or_dict
-	else:
-		action = actions_dict[action_key_or_dict]
+	# remove event it self or equals once for all.
+	for r in removes:
+		target_action['events'].erase(r)
 		
-	for evt in action['events']:
-		if KeyChain.is_equals_event(event, evt, deep_match_event):
-			return evt
-	return null
-
-
-func get_action_from_ordered(action_key_or_dict):
-	var action_key = null
-	if action_key_or_dict is Dictionary:
-		action_key = action_key_or_dict['key']
-	else:
-		action_key = action_key_or_dict
-	for act in ordered_actions:
-		if action_key == act['key']:
-			return act
-	return null
+	if InputMap.has_action(action_key):
+		for r in removes:
+			if InputMap.action_has_event(action_key, r):
+				InputMap.action_erase_event(action_key, r)
 

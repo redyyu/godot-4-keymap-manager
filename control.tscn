@@ -1,7 +1,13 @@
-[gd_scene load_steps=3 format=3 uid="uid://dkip11pkcxeif"]
+[gd_scene load_steps=5 format=3 uid="uid://dkip11pkcxeif"]
 
 [ext_resource type="Script" path="res://control.gd" id="1_6y8ev"]
 [ext_resource type="Theme" uid="uid://c7no37vw4cfr0" path="res://theme.tres" id="1_ggvf5"]
+
+[sub_resource type="InputEventAction" id="InputEventAction_6gwca"]
+action = &"test-1"
+
+[sub_resource type="Shortcut" id="Shortcut_lc6wp"]
+events = [SubResource("InputEventAction_6gwca")]
 
 [node name="Control" type="Control"]
 layout_mode = 3
@@ -20,8 +26,20 @@ offset_top = 100.0
 offset_right = 1100.0
 offset_bottom = 500.0
 
-[node name="overlayer" type="ColorRect" parent="."]
-visible = false
+[node name="Button" type="Button" parent="."]
 layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+offset_left = 170.0
+offset_top = 184.0
+offset_right = 268.0
+offset_bottom = 215.0
+shortcut = SubResource("Shortcut_lc6wp")
+text = "Test button"
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 0
+offset_left = 174.0
+offset_top = 114.0
+offset_right = 268.0
+offset_bottom = 137.0
+
+[connection signal="pressed" from="Button" to="." method="_on_button_pressed"]
