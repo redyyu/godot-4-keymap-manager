@@ -168,6 +168,12 @@ func remove_tag(tag :StringName):
 			action.tags.erase(tag)
 
 
+func append_tags(new_tags: Array):
+	for t in new_tags:
+		if t is StringName or t is String:
+			tags.append(t)
+
+
 func clear_tags():
 	tags.clear()		
 	for action in actions:
