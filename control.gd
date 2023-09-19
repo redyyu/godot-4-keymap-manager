@@ -47,6 +47,7 @@ var keyChain = KeyChain.new()
 
 
 func _ready():
+
 	keyChain.append_tags(['Group 2', 'Group 1'])
 	load_default_keymap()
 	keymapManager.load_keychain(keyChain)

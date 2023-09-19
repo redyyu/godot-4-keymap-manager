@@ -1,4 +1,5 @@
 res://control.tscn
 res://theme.tres
 res://KeyChain/KeyChain.gd
+res://KeyChain/KeyChainAction.gd
 res://control.gd

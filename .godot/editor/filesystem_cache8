@@ -1,11 +1,11 @@
 ea4bc82a6ad023ab7ee23ee620429895
-::res://::1694926186
-control.gd::GDScript::-1::1694886077::0::1::::<>Control<>::
-control.tscn::PackedScene::7878624084262235261::1694891386::0::1::::<><>::res://control.gd<>uid://c7no37vw4cfr0::::res://theme.tres<>res://KeymapManager.gd
+::res://::1695122854
+control.gd::GDScript::-1::1694948457::0::1::::<>Control<>::
+control.tscn::PackedScene::7878624084262235261::1694948467::0::1::::<><>::res://control.gd<>uid://c7no37vw4cfr0::::res://theme.tres<>res://KeymapManager.gd
 icon.svg::CompressedTexture2D::9194097777880592810::1694612132::1694752360::1::::<><>::
 KeymapInfo.gd::GDScript::-1::1694885497::0::1::::<>PanelContainer<>::
 KeymapManager.gd::GDScript::-1::1694891356::0::1::::KeymapManager<>PanelContainer<>::
-theme.tres::Theme::7046623028960598479::1694888372::0::1::::<><>::
+theme.tres::Theme::7046623028960598479::1694948426::0::1::::<><>::
 ::res://assets/::1694876953
 add.svg::CompressedTexture2D::5121942087110923502::1694533691::1694752360::1::::<><>::
 close.svg::CompressedTexture2D::7656824234189525495::1694533691::1694752360::1::::<><>::
@@ -15,6 +15,6 @@ mouse.svg::CompressedTexture2D::1003054388299210576::1694533691::1694752360::1::
 remove.svg::CompressedTexture2D::804206456604533215::1694533691::1694752360::1::::<><>::
 shortcut.svg::CompressedTexture2D::3650466742307067378::1694533691::1694752360::1::::<><>::
 trans.png::CompressedTexture2D::1327244720462229538::1694820881::1694820886::1::::<><>::
-::res://KeyChain/::1694888021
-KeyChain.gd::GDScript::-1::1694872904::0::1::::KeyChain<>Resource<>::
-KeyChainAction.gd::GDScript::-1::1694888021::0::1::::KeyChainAction<>Resource<>::
+::res://KeyChain/::1695122628
+KeyChain.gd::GDScript::-1::1694952223::0::1::::KeyChain<>Resource<>::
+KeyChainAction.gd::GDScript::-1::1695122628::0::1::::<>RefCounted<>::
