@@ -1,6 +1,8 @@
-extends Resource
+# version: 0.1.0
+# https://github.com/redyyu/godot-4-keymap-manager
+# redy.ru@gmail.com
 
-class_name KeyChain
+class_name KeyChain extends Resource
 
 enum UniqueEventMode {
 	NONE,
@@ -50,7 +52,8 @@ func remove_event(event):
 		action.remove_event(event)
 
 
-func pack_actions_tree(as_list :bool = true):
+# return a list or dict. list as default.
+func pack_actions_tree(as_list :bool = true) -> Variant: 
 	var output :Dictionary = {'': []}
 	var output_list :Array = []
 	for tag in tags:
@@ -78,7 +81,7 @@ func pack_actions_tree(as_list :bool = true):
 		return output
 
 
-func search_actions_by_tag(by_tag :StringName = ''):
+func search_actions_by_tag(by_tag :StringName = '') -> Array:
 	var output :Array = []
 	for action in actions:
 		if by_tag:
@@ -90,8 +93,11 @@ func search_actions_by_tag(by_tag :StringName = ''):
 	return output
 
 
-func add_action(action_key :StringName, action_name :String = '' , tag :StringName = '',
-				deadzone: float = 0.5):
+func add_action(action_key :StringName, 
+				action_name :String = '',
+				tag :StringName = '', 
+				deadzone: float = 0.5) -> KeyChainAction:
+					
 	if not action_name:
 		action_name = action_key.capitalize()
 	
@@ -118,8 +124,11 @@ func add_action(action_key :StringName, action_name :String = '' , tag :StringNa
 	return action
 
 
-func update_action(action_key :StringName, action_name :String = '' , tag :StringName = '',
-				   deadzone: float = 0.5):
+func update_action(action_key :StringName, 
+				   action_name :String = '',
+				   tag :StringName = '', 
+				   deadzone: float = 0.5) -> KeyChainAction:
+					
 	if not action_name:
 		action_name = action_key.capitalize()
 	
@@ -136,6 +145,7 @@ func update_action(action_key :StringName, action_name :String = '' , tag :Strin
 	return action
 
 
+# get a KeyChainAction or null.
 func get_action(action_key :StringName):
 	for action in actions:
 		if action.key == action_key:
@@ -154,7 +164,7 @@ func del_action(action_key :StringName):
 			InputMap.erase_action(action.key)
 		
 
-func add_tag(tag :StringName):
+func add_tag(tag :StringName) -> Array:
 	if tag and (not tags.has(tag)):
 		tags.append(tag)
 	return tags
@@ -208,7 +218,9 @@ func reset_action_tags():
 			action.tags.erase(r)
 
 
-func find_event_exists(event :InputEvent, by_tags :Variant = false):
+func find_event_exists(event :InputEvent, 
+					   by_tags = false) -> Array:
+						
 	var confilicts :Array = []
 	
 	if by_tags == false:
@@ -255,7 +267,11 @@ func _on_keymap_event_bounded(action_key, event, action_tags):
 
 # static functions
 
-static func makeEventMouseButton(event_key, cmd=false, shift=false, alt=false):
+static func makeEventMouseButton(event_key :MouseButton, 
+								 cmd :bool=false,
+								 shift :bool=false,
+								 alt :bool=false) -> InputEventMouseButton:
+
 	var event: InputEventMouseButton = InputEventMouseButton.new()
 	event.button_index = event_key
 	event.alt_pressed = bool(alt)
@@ -264,7 +280,11 @@ static func makeEventMouseButton(event_key, cmd=false, shift=false, alt=false):
 	return event
 
 
-static func makeEventKey(event_key, cmd=false, shift=false, alt=false):
+static func makeEventKey(event_key :Key,
+						 cmd :bool=false,
+						 shift :bool=false,
+						 alt :bool=false) -> InputEventKey:
+
 	var event: InputEventKey = InputEventKey.new()
 	event.keycode = event_key
 	event.alt_pressed = bool(alt)
@@ -273,8 +293,9 @@ static func makeEventKey(event_key, cmd=false, shift=false, alt=false):
 	return event
 	
 
-static func is_equal_input(evt_1 :Variant, evt_2 :Variant, not_strict :bool = true):
-	# its possible to check event as `null`.
+static func is_equal_input(evt_1, evt_2, not_strict :bool = true) -> bool:
+	# use Variant, because its possible to check event as `null`.
+	
 	if evt_1 is InputEventWithModifiers and evt_2 is InputEventWithModifiers:
 		if evt_1 == evt_2:
 			return true
@@ -290,12 +311,20 @@ static func is_equal_input(evt_1 :Variant, evt_2 :Variant, not_strict :bool = tr
 					return false
 				elif evt_1.unicode != evt_2.unicode:
 					return false
-			elif evt_1 is InputEventMouseButton and evt_2 is InputEventMouseButton:
+			elif (evt_1 is InputEventMouseButton and 
+				  evt_2 is InputEventMouseButton):
 				if evt_1.button_index != evt_2.button_index:
 					return false
+			
+			# use those for save line width only.
+			var evt_1_command_automap = evt_1.command_or_control_autoremap
+			var evt_2_command_automap = evt_2.command_or_control_autoremap
+			var evt_1_cmd_pressed = evt_1.is_command_or_control_pressed()
+			var evt_2_cmd_pressed = evt_2.is_command_or_control_pressed()
+			
 			return [
-				evt_1.command_or_control_autoremap == evt_2.command_or_control_autoremap,
-				evt_1.is_command_or_control_pressed() == evt_2.is_command_or_control_pressed(),
+				evt_1_command_automap == evt_2_command_automap,
+				evt_1_cmd_pressed == evt_2_cmd_pressed,
 				evt_1.alt_pressed == evt_2.alt_pressed,
 				evt_1.shift_pressed == evt_2.shift_pressed,
 				evt_1.ctrl_pressed == evt_2.ctrl_pressed,
@@ -305,11 +334,9 @@ static func is_equal_input(evt_1 :Variant, evt_2 :Variant, not_strict :bool = tr
 		return false
 
 
-# Actions
+# Key Actions
 
-class KeyChainAction:
-	
-	extends Resource
+class KeyChainAction extends Resource:
 
 	signal keymap_event_bounded(group, event)
 
@@ -360,11 +387,11 @@ class KeyChainAction:
 			InputMap.action_erase_events(key)
 
 
-	func count_events():
+	func count_events() -> int:
 		return events.size()
 
 
-	func has_event(event:InputEventWithModifiers):
+	func has_event(event:InputEventWithModifiers) -> bool:
 		for evt in events:
 			if KeyChain.is_equal_input(evt, event):
 				return true
